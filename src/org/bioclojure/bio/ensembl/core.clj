@@ -193,6 +193,12 @@
   [^Translation translation]
   (.getProteinSequence translation))
 
+(defn str-protein-sequence
+  "Returns a string of the protein sequence for this translation."
+  ^String
+  [^Translation translation]
+  (.getProteinSequenceAsString translation))
+
 (defn aa->chromosome
   "Convert AA position to chromosome location"
   [^DATranslation translation pos]
