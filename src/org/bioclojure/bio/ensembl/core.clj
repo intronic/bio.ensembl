@@ -301,11 +301,23 @@
   (inc (* 3 (dec aa-pos))))
 
 (defn aa-dna
-  "Return DNA from CDS for amino acid position."
+  "Return DNA from CDS for amino acid position (1-based aa-pos)."
   [translation aa-pos]
   (let [pos (cds<-aa aa-pos)]
     (when-let [dna (cds-dna translation)]
-      (subs (str dna) (dec pos) (+ pos 2)))))
+      #_(assert (and (<= 1 aa-pos (.length (str translation)))
+                   (pos? pos) (<= (+ pos 2) (.length (str dna))))
+              (str "aa-pos=" aa-pos " length(aa)=" (.length (str translation))
+                   " pos=" pos " length(dna)=" (.length (str dna))
+                   (if (>= (.length (str translation)) 1)
+                     (str " AA[" (.length (str translation))
+                          "]=" (subs (str translation)
+                                     (dec (.length (str translation))))))
+                   (if (>= (.length (str dna)) 3)
+                     (str " codon[" (/ (.length (str dna)) 3) "]=" (subs (str dna)
+                                                                         (- (.length (str dna)) 3))))))
+      (if (<= (+ pos 2) (.getLength dna))
+        (-> dna (.getSubSequence (int pos) (int (+ pos 2))) (.getSequenceAsString))))))
 
 (defn codon-dna
   "DNA of codon at chromosome position chrom-pos in translation."
