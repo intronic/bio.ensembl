@@ -140,6 +140,14 @@
   [^DATranscript transcript]
   (.getStableID transcript))
 
+(defn translation-transcript-stable-id
+  [^DATranslation translation]
+  (-> translation (.getTranscript) (.getStableID)))
+
+(defn translation-stable-id
+  [^DATranslation translation]
+  (.getStableID translation))
+
 (defn transcript-strand
   "Strand of transcript."
   [^Transcript transcript]
@@ -173,6 +181,15 @@
 (defn transcript-gene
   [^Transcript transcript]
   (.getGene transcript))
+
+
+(defn translation-transcript
+  [^Translation translation]
+  (.getTranscript translation))
+
+(defn translation-gene
+  [^Translation translation]
+  (-> translation (translation-transcript) (transcript-gene)))
 
 ;;; Strand predicates
 (defn strand-int+?
@@ -210,7 +227,7 @@
 (defn str-protein-sequence
   "Returns a string of the protein sequence for this translation."
   ^String
-  [^Translation translation]
+  [^DATranslation translation]
   (.getProteinSequenceAsString translation))
 
 (defn aa->chromosome
