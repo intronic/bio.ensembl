@@ -83,6 +83,14 @@
   ([species-name chromosome-name ens-version]
      (.getChromosomeByName (species species-name) chromosome-name (str ens-version))))
 
+(defn chromosome-dna-str
+  "Return DNA for chromosome location."
+  ([^Chromosome chromosome start end]
+     (-> chromosome (.getSequenceAsString (int start) (int end))))
+  ([^Chromosome chromosome position upstream downstream]
+     (-> chromosome (.getSequenceAsString (int (- position upstream))
+                                          (int (+ position downstream))))))
+
 (defn genes-on-region
   ([species-name chromosome-name begin end]
      (genes-on-region (chromosome species-name chromosome-name) begin end))
