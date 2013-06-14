@@ -407,6 +407,10 @@
 
   (ensembl-versions)
 
+  
+  (. (chromosome "human" "14") getSequenceAsString (int 81610500) (int 81610540))
+  ;; "AAACGCCAGGCTCAGGCATACCGGGGGCAGAGGGTTCCTCC"
+  
   ;; local Ensembl connections - for file format see:
   ;;   http://jensembl.svn.sourceforge.net/viewvc/jensembl/trunk/EnsemblTest/src/main/resources/
   (set-registry! (local-config "example_local_configuration.properties")))
