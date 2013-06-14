@@ -247,8 +247,19 @@
 
 (defn protein-sequence
   "Returns the protein sequence for this translation."
+  ^org.biojava3.core.sequence.ProteinSequence
   [^Translation translation]
   (.getProteinSequence translation))
+
+(defn protein-aa
+  "Returns the amino acid for this protein"
+  [^org.biojava3.core.sequence.ProteinSequence protein aa-pos]
+  (.getCompoundAt protein  aa-pos))
+
+(defn protein-aa-str
+  "Returns the amino acid for this protein"
+  [^org.biojava3.core.sequence.ProteinSequence protein aa-pos]
+  (str (.getCompoundAt protein  aa-pos)))
 
 (defn str-protein-sequence
   "Returns a string of the protein sequence for this translation."
