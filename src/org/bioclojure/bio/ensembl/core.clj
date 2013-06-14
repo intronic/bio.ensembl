@@ -425,6 +425,40 @@
   
   (. (chromosome "human" "14") getSequenceAsString (int 81610500) (int 81610540))
   ;; "AAACGCCAGGCTCAGGCATACCGGGGGCAGAGGGTTCCTCC"
+
+  (first (genes-on-region "human" "7" 140481402 140481402))
+  ;; #<DAGene$$EnhancerByCGLIB$$67a71994 uk.ac.roslin.ensembl.datasourceaware.core.DAGene$$EnhancerByCGLIB$$67a71994@63e731e0>
+
+  (gene-name *1)
+  ;; "BRAF"
+  
+  (gene-canonical-transcript *2)
+  ;; #<DATranscript$$EnhancerByCGLIB$$54ddeb9f uk.ac.roslin.ensembl.datasourceaware.core.DATranscript$$EnhancerByCGLIB$$54ddeb9f@f63feaa>
+  
+  (exon-rank (exon<-chromosome *1 140481402))
+  ;; 11
+
+  (transcript-canonical-translation *2)
+  ;; #<DATranslation$$EnhancerByCGLIB$$a35d9984 uk.ac.roslin.ensembl.datasourceaware.core.DATranslation$$EnhancerByCGLIB$$a35d9984@92ff107>
+
+  (protein-sequence *1)
+  ;; #<ProteinSequence MAALSGGGGGGAEPGQALFNGDMEPEAGAGAGAAASSAADPAIPEEVWNIKQMIKLTQEHIEALLDKFGGEHNPPSIYLEAYEEYTSKLDALQQREQQLLESLGNGTDFSVSSSASMDTVTSSSSSSLSVLPSSLSVFQNPTDVARSNPKSPQKPIVRVFLPNKQRTVVPARCGVTVRDSLKKALMMRGLIPECCAVYRIQDGEKKPIGWDTDISWLTGEELHVEVLENVPLTTHNFVRKTFFTLAFCDFCRKLLFQGFRCQTCGYKFHQRCSTEVPLMCVNYDQLDLLFVSKFFEHHPIPQEEASLAETALTSGSSPSAPASDSIGPQILTSPSPSKSIPIPQPFRPADEDHRNQFGQRDRSSSAPNVHINTIEPVNIDDLIRDQGFRGDGGSTTGLSATPPASLPGSLTNVKALQKSPGPQRERKSSSSSEDRNRMKTLGRRDSSDDWEIPDGQITVGQRIGSGSFGTVYKGKWHGDVAVKMLNVTAPTPQQLQAFKNEVGVLRKTRHVNILLFMGYSTKPQLAIVTQWCEGSSLYHHLHIIETKFEMIKLIDIARQTAQGMDYLHAKSIIHRDLKSNNIFLHEDLTVKIGDFGLATVKSRWSGSHQFEQLSGSILWMAPEVIRMQDKNPYSFQSDVYAFGIVLYELMTGQLPYSNINNRDQIIFMVGRGYLSPDLSKVRSNCPKAMKRLMAECLKKKRDERPLFPQILASIELLARSLPKIHRSASEPSLNRAGFQTEDFSLYACASPKTPIQAGGYGAFPVH>
+
+  (aa<-chromosome *2 140481402)
+  ;; 469
+
+  (protein-aa *2 469)
+  ;; #<AminoAcidCompound G>
+
+  (protein-aa-str *3 469)
+  ;; "G"
+
+  (-> (first (genes-on-region "human" "7" 140481402 140481402))
+      gene-canonical-transcript
+      transcript-canonical-translation
+      (aa-dna 469))
+  ;; "CGA"
+
   
   ;; local Ensembl connections - for file format see:
   ;;   http://jensembl.svn.sourceforge.net/viewvc/jensembl/trunk/EnsemblTest/src/main/resources/
