@@ -117,6 +117,10 @@
   ([^Gene gene]
      (.getTranscripts gene)))
 
+(defn gene-canonical-transcript
+  ([^Gene gene]
+     (.getCanonicalTranscript gene)))
+
 (defn transcript
   "Get transcript by stable ID"
   ([species-name transcript-stable-id]
