@@ -124,6 +124,13 @@
   ([species-name transcript-stable-id ens-version]
      (.getTranscriptByStableID (species species-name) transcript-stable-id (str ens-version))))
 
+(defn transcript-exons
+  "Get exons from transcript"
+  ([species-name transcript-stable-id]
+     (transcript-exons (transcript species-name transcript-stable-id)))
+  ([transcript]
+     (.getExons ^Transcript transcript)))
+
 (defn gene-stable-id
   [^DAGene gene]
   (.getStableID gene))
@@ -182,6 +189,21 @@
   [^Transcript transcript]
   (.getGene transcript))
 
+(defn exon-rank
+  "Rank for an exon"
+  [exon]
+  (and exon (-> exon .getRank)))
+
+(defn exon-coord
+  "Chromosome coordinates for an exon"
+  ^Coordinate
+  [exon]
+  (-> exon .getChromosomeMapping .getTargetCoordinates))
+
+(defn exon-coord-rank-vec
+  "Chromosome coordinates and rank for an exon"
+  [exon]
+  (conj (coord-vec (exon-coord exon)) (exon-rank exon)))
 
 (defn translation-transcript
   [^Translation translation]
@@ -341,6 +363,14 @@
   [^org.biojava3.core.sequence.DNASequence dna-seq]
   (-> dna-seq (.getComplement) (.getViewedSequence)))
 
+(defn exon<-chromosome
+  "Get exon from transcript and chromosome location"
+  [transcript pos]
+  (let [e (->> transcript
+               transcript-exons
+               (filter #(-> % exon-coord (coord-contains-point? pos))))]
+    (assert (<= (count e) 1) (str "count=" (count e)))
+    (first e)))
 
 (comment
 
