@@ -137,12 +137,18 @@
   [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTargetCoordinates) (.getStrand)))
 
-(defn coords-vec
-  "Return a vector of coordinates [chr start end strand]."
-  [^Coordinate coords]
-  ((juxt #(.getStart ^Coordinate %) #(.getEnd ^Coordinate %) #(.getStrandInt ^Coordinate %)) coords))
+(defn coord-contains-point?
+  "True if coord contains point"
+  [^Coordinate coord pos]
+  (.containsPoint coord (int pos)))
 
-(defn transcript-coords
+(defn coord-vec
+  "Return a vector of coordinates [chr start end strand]."
+  [^Coordinate coord]
+  ((juxt #(.getStart ^Coordinate %) #(.getEnd ^Coordinate %) #(.getStrandInt ^Coordinate %)) coord))
+
+
+(defn transcript-coord
   "Genomic coordinates of transcript start/stop/strand."
   [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTargetCoordinates)))
