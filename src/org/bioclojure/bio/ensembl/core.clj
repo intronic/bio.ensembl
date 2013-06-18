@@ -7,11 +7,13 @@
            [uk.ac.roslin.ensembl.model Coordinate StableID]
            [uk.ac.roslin.ensembl.model.database Registry]
            [uk.ac.roslin.ensembl.model.core
-            DNASequence Feature Gene Species Transcript Translation Chromosome]
+            Species DNASequence Feature Chromosome Gene Transcript Exon Translation]
            [uk.ac.roslin.ensembl.model.variation Variation]
-           [uk.ac.roslin.ensembl.datasourceaware.core DATranslation DAGene DATranscript]))
+           [uk.ac.roslin.ensembl.datasourceaware.core
+            DATranslation DAGene DATranscript DAExon]))
 
 (defonce ^:dynamic ^Registry *registry* nil)
+
 
 (defmacro with-registry
   [registry & body]
@@ -193,15 +195,20 @@
   [^Transcript transcript]
   (.getGene transcript))
 
+(defn exon-stable-id
+  "StableID for an exon"
+  [^DAExon exon]
+  (and exon (-> exon .getStableID)))
+
 (defn exon-rank
   "Rank for an exon"
-  [exon]
+  [^DAExon exon]
   (and exon (-> exon .getRank)))
 
 (defn exon-coord
   "Chromosome coordinates for an exon"
   ^Coordinate
-  [exon]
+  [^DAExon exon]
   (-> exon .getChromosomeMapping .getTargetCoordinates))
 
 (defn exon-coord-rank-vec
