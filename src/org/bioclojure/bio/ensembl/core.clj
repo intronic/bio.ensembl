@@ -1,7 +1,8 @@
 (ns org.bioclojure.bio.ensembl.core
   (:require [clojure.java.io :as io]
             [clojure.string :refer (upper-case)]
-            [org.bioclojure.bio.ensembl.config :only (data-source)])
+            [org.bioclojure.bio.ensembl.config :only (data-source)]
+            [lazymap.core :refer (lazy-hash-map)])
   (:import [uk.ac.roslin.ensembl.config RegistryConfiguration DBConnection$DataSource]
            [uk.ac.roslin.ensembl.dao.database DBRegistry DBSpecies]
            [uk.ac.roslin.ensembl.model Coordinate StableID]
@@ -223,6 +224,66 @@
 (defn translation-gene
   [^Translation translation]
   (-> translation (translation-transcript) (transcript-gene)))
+
+(defn da-transcript
+  "Provide a top level map of information from a DAtranscript.
+   :transcript stores the original java transcript object for direct access."
+  [^DATranscript transcript]
+  (lazy-hash-map
+   :display-name (.getDisplayName transcript)
+   :description (.getDescription transcript)
+   :stable-id (.getStableID transcript)
+   :canonical-translation (.getCanonicalTranslation transcript)
+   :gene (da-gene (.getGene transcript))
+   :synonyms (.getAllSynonyms transcript)
+   :canonical? (.isCanonical transcript)
+   :translated? (.isTranslated transcript)
+   :transcript transcript))
+
+(defn da-exon
+  "Provide a top level map of information from a DAExon.
+   :exon stores the original java transcript object for direct access."
+  [^DAExon exon]
+  (lazy-hash-map
+   :display-name (.getDisplayName exon)
+   :description (.getDescription exon)
+   :stable-id (.getStableID exon)
+   :phase (.getPhase exon)
+   :end-phase (.getEndPhase exon)
+   :rank (.getRank exon)
+   :transcript (da-transcript (.getTranscript exon))
+   :constitutive? (.isConstitutive exon)
+   :exon exon))
+
+(defn da-translation
+  "Provide a top level map of information from a DATranslation.
+   :translation stores the original java transcript object for direct access."
+  [^DATranslation translation]
+  (lazy-hash-map
+   :stable-id (.getStableID translation)
+   :gene (da-gene (.getGene translation))
+   :transcript (da-transcript (.getTranscript translation))
+   :first-exon (da-exon (.getFirstExon translation))
+   :last-exon (da-exon (.getLastExon translation))
+   :synonyms (.getAllSynonyms translation)
+   :canonical? (.isCanonical translation)
+   :translation translation))
+
+(defn da-gene
+  "Provide a top level map of information from a gene.
+   :gene stores the original java transcript object for direct access."
+  [^DAGene gene]
+  (lazy-hash-map
+   :display-name (.getDisplayName gene)
+   :description (.getDescription gene)
+   :stable-id (.getStableID gene)
+   :canonical-transcript (da-transcript (.getCanonicalTranscript gene))
+   :canonical-translation (da-translation (.getCanonicalTranslation gene))
+   :transcripts (map da-transcript (.getTranscripts gene))
+   :synonyms (.getAllSynonyms gene)
+   :gene gene))
+
+
 
 ;;; Strand predicates
 (defn strand-int+?

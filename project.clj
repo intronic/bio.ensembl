@@ -7,5 +7,7 @@
                  ["biojava" {:url "http://www.biojava.org/download/maven/" :checksum :ignore :snapshots false }]]
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [uk.ac.roslin/ensembl-data-access "1.15"]
-                 [uk.ac.roslin/ensembl-config "1.70"]]
+                 [uk.ac.roslin/ensembl-config "1.70"]
+                 [de.kotka/lazymap "3.1.1"]
+                 [gavagai "0.3.1"]]
   :warn-on-reflection true)
