@@ -124,6 +124,10 @@
   ([^Gene gene]
      (.getCanonicalTranscript gene)))
 
+(defn gene-canonical-translation
+  ([^Gene gene]
+     (.getCanonicalTranslation gene)))
+
 (defn transcript
   "Get transcript by stable ID"
   ([species-name transcript-stable-id]
@@ -137,6 +141,22 @@
      (transcript-exons (transcript species-name transcript-stable-id)))
   ([transcript]
      (.getExons ^Transcript transcript)))
+
+(defn transcript-coding-exons
+  "Get CDS exons from transcript"
+  [^Transcript transcript]
+  (let [trl (transcript-canonical-translation transcript)
+        first-exon (.getFirstExon trl)
+        last-exon (.getLastExon trl)
+        first-rank (.getRank first-exon)
+        last-rank (.getRank last-exon)
+        ;; filter exons between first and last
+        cds (filter #(<= first-rank (.getRank %) last-rank)
+                    (transcript-exons transcript))]
+    ;; check first and last exon IDs match
+    (assert (= (exon-stable-id first-exon) (exon-stable-id (first cds))))
+    (assert (= (exon-stable-id last-exon) (exon-stable-id (last cds))))
+    cds))
 
 (defn gene-stable-id
   [^DAGene gene]
