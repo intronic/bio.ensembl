@@ -105,7 +105,9 @@
   ([^Chromosome chromosome begin end]
      (.getGenesOnRegion chromosome (int begin) (int end)))
   ([chromosome pos]
-     (genes-on-region chromosome pos pos)))
+     (genes-on-region chromosome pos pos))
+  ([chromosome]
+     (genes-on-region chromosome 1 (.getLength chromosome))))
 
 (defn variations-on-region
   ([species-name chromosome-name begin end]
@@ -120,6 +122,12 @@
      (.getGeneByStableID (species species-name) gene-stable-id))
   ([species-name gene-stable-id ens-version]
      (.getGeneByStableID (species species-name) gene-stable-id (str ens-version))))
+
+(defn genes-by-name
+  ([species-name gene-name]
+     (.getGenesForExactName (species species-name) gene-name))
+  ([species-name gene-name ens-version]
+     (.getGenesForExactName (species species-name) gene-name (str ens-version))))
 
 (defn gene-transcripts
   ([^Gene gene]
@@ -169,7 +177,7 @@
 
 (defn gene-name
   [^DAGene gene]
-  (.getDisplayName gene))
+  (and gene (.getDisplayName gene)))
 
 (defn gene-description
   [^Gene gene]
