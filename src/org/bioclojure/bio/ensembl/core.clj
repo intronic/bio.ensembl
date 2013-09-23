@@ -236,7 +236,7 @@
 
 (defn transcript-gene
   [^Transcript transcript]
-  (.getGene transcript))
+  (and transcript (.getGene transcript)))
 
 (defn exon-stable-id
   "StableID for an exon"
