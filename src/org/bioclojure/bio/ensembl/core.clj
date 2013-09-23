@@ -208,8 +208,17 @@
 (defn coord-vec
   "Return a vector of coordinates [chr start end strand]."
   [^Coordinate coord]
-  ((juxt #(.getStart ^Coordinate %) #(.getEnd ^Coordinate %) #(.getStrandInt ^Coordinate %)) coord))
+  [(.getStart coord) (.getEnd coord) (.getStrand coord)])
 
+(defn coord
+  "Return a coordinate"
+  [start end]
+  (Coordinate. (int start) (int end)))
+
+(defn coord-count
+  "Return count of coordinates  between start-end (1-based system so subtract 1 from start)"
+  [^Coordinate coord]
+  (- (.getEnd coord) (dec (.getStart coord))))
 
 (defn transcript-coord
   "Genomic coordinates of transcript start/stop/strand."
