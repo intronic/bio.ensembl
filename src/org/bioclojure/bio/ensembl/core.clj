@@ -79,6 +79,11 @@
   [species-name]
   (map #(.getChromosomeName ^Chromosome %) (vals (.getChromosomes (species species-name)))))
 
+(defn get-chromosomes
+  "return a mapping of chromosome name to chromosome"
+  [species-name]
+  (.getChromosomes (species species-name)))
+
 (defn chromosome
   ^Chromosome
   ([species-name chromosome-name]
