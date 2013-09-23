@@ -195,11 +195,6 @@
   [^DATranslation translation]
   (.getStableID translation))
 
-(defn transcript-strand
-  "Strand of transcript."
-  [^Transcript transcript]
-  (-> transcript (.getChromosomeMapping) (.getTargetCoordinates) (.getStrand)))
-
 (defn coord-contains-point?
   "True if coord contains point"
   [^Coordinate coord pos]
@@ -229,6 +224,11 @@
   "Genomic coordinates of transcript start/stop/strand."
   [^Transcript transcript]
   (-> transcript (.getChromosomeMapping) (.getTarget)))
+
+(defn transcript-strand
+  "Strand of transcript."
+  [^Transcript transcript]
+  (-> transcript (.getChromosomeMapping) (.getTargetCoordinates) (.getStrand)))
 
 (defn transcript-biotype
   [^DATranscript transcript]
