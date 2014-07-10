@@ -328,21 +328,17 @@
 
 
 ;;; Strand predicates
-(defn strand-int+?
-  [strand]
-  (= 1 strand))
-
-(defn strand-int-?
-  [strand]
-  (= -1 strand))
 
 (defn strand+?
   [strand]
-  (= uk.ac.roslin.ensembl.model.Coordinate$Strand/FORWARD_STRAND strand))
+  (condp = (type strand)
+    Integer (= 1 strand)
+    uk.ac.roslin.ensembl.model.Coordinate$Strand
+    (= uk.ac.roslin.ensembl.model.Coordinate$Strand/FORWARD_STRAND strand)
+    (throw (ex-info "Unknown strand type." {:type (type strand) :val strand}))))
 
 (defn strand-?
   [strand]
-  (= uk.ac.roslin.ensembl.model.Coordinate$Strand/REVERSE_STRAND strand))
 
 ;;; Translation 
 (defn transcript-canonical-translation
@@ -354,6 +350,11 @@
   "Returns the translations for this transcript (if any)."
   [^Transcript transcript]
   (.getTranslations transcript))
+  (condp = (type strand)
+    Integer (= -1 strand)
+    uk.ac.roslin.ensembl.model.Coordinate$Strand
+    (= uk.ac.roslin.ensembl.model.Coordinate$Strand/REVERSE_STRAND strand)
+    (throw (ex-info "Unknown strand type." {:type (type strand) :val strand}))))
 
 (defn protein-sequence
   "Returns the protein sequence for this translation."
