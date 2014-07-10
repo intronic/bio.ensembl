@@ -1,19 +1,46 @@
 (ns org.bioclojure.bio.ensembl.core
   (:require [clojure.java.io :as io]
             [clojure.string :refer (upper-case)]
+            [clojure.algo.generic.functor :refer (fmap)]
             [org.bioclojure.bio.ensembl.config :only (data-source)]
-            [lazymap.core :refer (lazy-hash-map)])
+            [lazymap.core :refer (lazy-hash-map)]
+            [gavagai.core :as g])
   (:import [uk.ac.roslin.ensembl.config RegistryConfiguration DBConnection$DataSource]
            [uk.ac.roslin.ensembl.dao.database DBRegistry DBSpecies]
-           [uk.ac.roslin.ensembl.model Coordinate StableID]
+           [uk.ac.roslin.ensembl.model Coordinate StableID XRef]
            [uk.ac.roslin.ensembl.model.database Registry]
            [uk.ac.roslin.ensembl.model.core
             Species DNASequence Feature Chromosome Gene Transcript Exon Translation]
            [uk.ac.roslin.ensembl.model.variation Variation]
            [uk.ac.roslin.ensembl.datasourceaware.core
-            DATranslation DAGene DATranscript DAExon]))
+            DAGene DATranscript DAExon DATranslation]
+           [uk.ac.roslin.ensembl.datasourceaware
+            DAXRef]))
 
 (defonce ^:dynamic ^Registry *registry* nil)
+
+(declare da-gene da-transcript da-exon da-translation)
+
+(defn map-prepend-first
+  [[prefix & classes]]
+  (if (nil? classes)
+    [[prefix]]
+    (mapv (fn [class] [(str prefix class)]) classes)))
+
+;(mapcat (partial str prefix) classes)
+
+(def translator
+  (g/register-converters
+   ({}                                  ;{:exclude [:class]}
+    (mapcat map-prepend-first
+            [["org.biojava3.core.sequence.ProteinSequence"]
+             ["uk.ac.roslin.ensembl.model.variation." "Variation"]
+             ["uk.ac.roslin.ensembl.datasourceaware.core."
+              "DAGene" "DATranscript" "DAExon" "DATranslation"]
+             ["uk.ac.roslin.ensembl.datasourceaware."
+              "DAXRef"]
+             ["uk.ac.roslin.ensembl.model.core."
+              "Species" "DNASequence" "Feature" "Chromosome" "Gene" "Transcript" "Exon" "Translation"]]))))
 
 
 (defmacro with-registry
@@ -141,36 +168,6 @@
   ([^Gene gene]
      (.getCanonicalTranslation gene)))
 
-(defn transcript
-  "Get transcript by stable ID"
-  ([species-name transcript-stable-id]
-     (.getTranscriptByStableID (species species-name) transcript-stable-id))
-  ([species-name transcript-stable-id ens-version]
-     (.getTranscriptByStableID (species species-name) transcript-stable-id (str ens-version))))
-
-(defn transcript-exons
-  "Get exons from transcript"
-  ([species-name transcript-stable-id]
-     (transcript-exons (transcript species-name transcript-stable-id)))
-  ([transcript]
-     (.getExons ^Transcript transcript)))
-
-(defn transcript-coding-exons
-  "Get CDS exons from transcript"
-  [^Transcript transcript]
-  (let [trl (transcript-canonical-translation transcript)
-        first-exon (.getFirstExon trl)
-        last-exon (.getLastExon trl)
-        first-rank (.getRank first-exon)
-        last-rank (.getRank last-exon)
-        ;; filter exons between first and last
-        cds (filter #(<= first-rank (.getRank %) last-rank)
-                    (transcript-exons transcript))]
-    ;; check first and last exon IDs match
-    (assert (= (exon-stable-id first-exon) (exon-stable-id (first cds))))
-    (assert (= (exon-stable-id last-exon) (exon-stable-id (last cds))))
-    cds))
-
 (defn gene-stable-id
   [^DAGene gene]
   (.getStableID gene))
@@ -182,10 +179,6 @@
 (defn gene-description
   [^Gene gene]
   (.getDescription gene))
-
-(defn transcript-stable-id
-  [^DATranscript transcript]
-  (.getStableID transcript))
 
 (defn translation-transcript-stable-id
   [^DATranslation translation]
@@ -206,14 +199,49 @@
   [(.getStart coord) (.getEnd coord) (.getStrand coord)])
 
 (defn coord
-  "Return a coordinate"
-  [start end]
-  (Coordinate. (int start) (int end)))
+  "Return a coordinate.
+   Strand (if specified) should be +1 or -1 for +/-
+   (or forward/reverse) respectively."
+  ([start end] (Coordinate. (int start) (int end)))
+  ([start end strand] (Coordinate. ^Integer (int start) ^Integer (int end)
+                                   ^Integer (int strand))))
 
 (defn coord-count
   "Return count of coordinates  between start-end (1-based system so subtract 1 from start)"
   [^Coordinate coord]
   (- (.getEnd coord) (dec (.getStart coord))))
+
+(defn exon-stable-id
+  "StableID for an exon"
+  [^DAExon exon]
+  (and exon (-> exon .getStableID)))
+
+(defn exon-rank
+  "Rank for an exon"
+  [^DAExon exon]
+  (and exon (-> exon .getRank)))
+
+(defn exon-coord
+  "Chromosome coordinates for an exon"
+  ^Coordinate
+  [^DAExon exon]
+  (-> exon .getChromosomeMapping .getTargetCoordinates))
+
+(defn exon-coord-rank-vec
+  "Chromosome coordinates and rank for an exon"
+  [exon]
+  (conj (coord-vec (exon-coord exon)) (exon-rank exon)))
+
+(defn transcript
+  "Get transcript by stable ID"
+  ([species-name transcript-stable-id]
+     (.getTranscriptByStableID (species species-name) transcript-stable-id))
+  ([species-name transcript-stable-id ens-version]
+     (.getTranscriptByStableID (species species-name) transcript-stable-id (str ens-version))))
+
+(defn transcript-stable-id
+  [^DATranscript transcript]
+  (.getStableID transcript))
 
 (defn transcript-coord
   "Genomic coordinates of transcript start/stop/strand."
@@ -238,26 +266,50 @@
   [^Transcript transcript]
   (and transcript (.getGene transcript)))
 
-(defn exon-stable-id
-  "StableID for an exon"
-  [^DAExon exon]
-  (and exon (-> exon .getStableID)))
+(defn transcript-exons
+  "Get exons from transcript"
+  ([species-name transcript-stable-id]
+     (transcript-exons (transcript species-name transcript-stable-id)))
+  ([transcript]
+     (.getExons ^Transcript transcript)))
 
-(defn exon-rank
-  "Rank for an exon"
-  [^DAExon exon]
-  (and exon (-> exon .getRank)))
+(defn transcript-canonical-translation
+  "Returns the canonical translation for this transcript (if any)."
+  [^Transcript transcript]
+  (.getCanonicalTranslation transcript))
 
-(defn exon-coord
-  "Chromosome coordinates for an exon"
-  ^Coordinate
-  [^DAExon exon]
-  (-> exon .getChromosomeMapping .getTargetCoordinates))
+(defn transcript-translations
+  "Returns the translations for this transcript (if any)."
+  [^Transcript transcript]
+  (.getTranslations transcript))
 
-(defn exon-coord-rank-vec
-  "Chromosome coordinates and rank for an exon"
-  [exon]
-  (conj (coord-vec (exon-coord exon)) (exon-rank exon)))
+(defn transcript-translation
+  "Returns the canonical translation for this transcript"
+  [^Transcript transcript & {:keys [sanity-check?]}]
+  (if-let [tr (.getCanonicalTranslation transcript)]
+    (if sanity-check?
+      (let [all (transcript-translations transcript)]
+        (assert (and (= 1 (count all)) (= tr (first all)))
+                (format "Translations mismatch for %s (count of other=%d)"
+                        (transcript-stable-id transcript) (count all)))
+        tr)
+      tr)))
+
+(defn transcript-coding-exons
+  "Get CDS exons from transcript"
+  [^Transcript transcript]
+  (let [trl (transcript-canonical-translation transcript)
+        first-exon (.getFirstExon trl)
+        last-exon (.getLastExon trl)
+        first-rank (.getRank first-exon)
+        last-rank (.getRank last-exon)
+        ;; filter exons between first and last
+        cds (filter #(<= first-rank (.getRank %) last-rank)
+                    (transcript-exons transcript))]
+    ;; check first and last exon IDs match
+    (assert (= (exon-stable-id first-exon) (exon-stable-id (first cds))))
+    (assert (= (exon-stable-id last-exon) (exon-stable-id (last cds))))
+    cds))
 
 (defn translation-transcript
   [^Translation translation]
@@ -325,8 +377,6 @@
    :synonyms (.getAllSynonyms gene)
    :gene gene))
 
-
-
 ;;; Strand predicates
 
 (defn strand+?
@@ -339,23 +389,13 @@
 
 (defn strand-?
   [strand]
-
-;;; Translation 
-(defn transcript-canonical-translation
-  "Returns the canonical translation for this transcript (if any)."
-  [^Transcript transcript]
-  (.getCanonicalTranslation transcript))
-
-(defn transcript-translations
-  "Returns the translations for this transcript (if any)."
-  [^Transcript transcript]
-  (.getTranslations transcript))
   (condp = (type strand)
     Integer (= -1 strand)
     uk.ac.roslin.ensembl.model.Coordinate$Strand
     (= uk.ac.roslin.ensembl.model.Coordinate$Strand/REVERSE_STRAND strand)
     (throw (ex-info "Unknown strand type." {:type (type strand) :val strand}))))
 
+;;; Translation
 (defn protein-sequence
   "Returns the protein sequence for this translation."
   ^org.biojava3.core.sequence.ProteinSequence
@@ -465,7 +505,7 @@
   "Return seq of BioJava NucleotideCompound for translated (CDS) region."
   [translation]
   (seq (cds-dna translation)))
-  
+
 (defn aa-length
   "Amino acid length (including start/stop)."
   [translation]
@@ -533,7 +573,7 @@
 
   (ensembl-versions)
 
-  
+
   (. (chromosome "human" "14") getSequenceAsString (int 81610500) (int 81610540))
   ;; "AAACGCCAGGCTCAGGCATACCGGGGGCAGAGGGTTCCTCC"
 
@@ -542,10 +582,10 @@
 
   (gene-name *1)
   ;; "BRAF"
-  
+
   (gene-canonical-transcript *2)
   ;; #<DATranscript$$EnhancerByCGLIB$$54ddeb9f uk.ac.roslin.ensembl.datasourceaware.core.DATranscript$$EnhancerByCGLIB$$54ddeb9f@f63feaa>
-  
+
   (exon-rank (exon<-chromosome *1 140481402))
   ;; 11
 
@@ -570,7 +610,7 @@
       (aa-dna 469))
   ;; "CGA"
 
-  
+
   ;; local Ensembl connections - for file format see:
   ;;   http://jensembl.svn.sourceforge.net/viewvc/jensembl/trunk/EnsemblTest/src/main/resources/
   (set-registry! (local-config "example_local_configuration.properties")))
