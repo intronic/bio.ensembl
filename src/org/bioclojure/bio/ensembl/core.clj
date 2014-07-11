@@ -196,7 +196,11 @@
 (defn coord-vec
   "Return a vector of coordinates [chr start end strand]."
   [^Coordinate coord]
-  [(.getStart coord) (.getEnd coord) (.getStrand coord)])
+  (if-let [s (.getStrand coord)]
+    [(int (.getStart coord)) (int (.getEnd coord))
+     (get {uk.ac.roslin.ensembl.model.Coordinate$Strand/FORWARD_STRAND 1
+           uk.ac.roslin.ensembl.model.Coordinate$Strand/REVERSE_STRAND -1} s nil)]
+    [(int (.getStart coord)) (int (.getEnd coord))]))
 
 (defn coord
   "Return a coordinate.
@@ -383,6 +387,7 @@
   [strand]
   (condp = (type strand)
     Integer (= 1 strand)
+    Long (= 1 strand)
     uk.ac.roslin.ensembl.model.Coordinate$Strand
     (= uk.ac.roslin.ensembl.model.Coordinate$Strand/FORWARD_STRAND strand)
     (throw (ex-info "Unknown strand type." {:type (type strand) :val strand}))))
@@ -391,6 +396,7 @@
   [strand]
   (condp = (type strand)
     Integer (= -1 strand)
+    Long (= -1 strand)
     uk.ac.roslin.ensembl.model.Coordinate$Strand
     (= uk.ac.roslin.ensembl.model.Coordinate$Strand/REVERSE_STRAND strand)
     (throw (ex-info "Unknown strand type." {:type (type strand) :val strand}))))
