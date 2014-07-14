@@ -100,7 +100,7 @@
 (defn species-version
   "Return genome assembly version of species."
   [species-name]
-  (.getAssembly (species species-name)))
+  (.getAssemblyName (species species-name) (ensembl-version species-name)))
 
 (defn list-chromosomes
   [species-name]
