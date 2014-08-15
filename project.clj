@@ -1,4 +1,4 @@
-(defproject intronic/bio.ensembl "0.1.3-SNAPSHOT"
+(defproject intronic/bio.ensembl "0.1.3"
   :description "Clojure API for Ensembl data access"
   :url "intronic/bio.ensembl"
   :license {:name "Eclipse Public License"
