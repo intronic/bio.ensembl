@@ -25,8 +25,6 @@
   :repositories { "jensembl" {:url "http://jensembl.sourceforge.net/m2-repo"
                               :checksum :ignore :snapshots false }
                   "biojava" {:url "http://www.biojava.org/download/maven/"
-                             :checksum :ignore :snapshots false }
-                  "snapshots" ~(str "file://" (System/getProperty "user.home") "/clj-repo/snapshots")
-                  "releases" ~(str "file://" (System/getProperty "user.home") "/clj-repo/releases")}
+                             :checksum :ignore :snapshots false }}
 
   :warn-on-reflection false)
